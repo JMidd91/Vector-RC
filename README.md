@@ -16,6 +16,11 @@ https://github.com/JMidd91/Vector-RC/blob/master/_screenshots/1.png.
 https://github.com/JMidd91/Vector-RC/blob/master/_screenshots/2.png.
 
 
+Id like to point people to a more developed app that gave me insiration - 
+
+  https://github.com/rmountjoy92/VectorCloud
+
+
 <h1><b>Todo</b> - </h1>
 
   <h2><b>facial recognition</b> -</h2> on hold as there is bug in Vector SDK preventing progress. - https://forums.anki.com/t/face-id-is-wrong-in-sdk/28524/2
