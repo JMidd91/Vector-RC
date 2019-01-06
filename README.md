@@ -8,3 +8,9 @@ this app is based on their app that ships with the SDK - https://github.com/anki
 I am just using their app to edit and learn and create my own in the process.
 
 So far the controls are the same in mine as theirs, except I have added H to tell vector to go home.
+
+screenshots - 
+
+https://github.com/JMidd91/Vector-RC/blob/master/_screenshots/1.png.
+
+https://github.com/JMidd91/Vector-RC/blob/master/_screenshots/2.png.
