@@ -45,8 +45,6 @@ Id like to point people to a more developed app that gave me insiration -
   
   <h2><b>speedometer</b></h2>
     
-    - make it prettier - black and white looks ugly.
-    
     - not sure aeronautical colouring of needles is clear enough. needs better ux 
     
     
