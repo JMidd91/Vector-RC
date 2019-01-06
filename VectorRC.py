@@ -286,7 +286,6 @@ class RemoteControlVector:
                 self.action_queue.pop(0)
 
     def pick_speed(self, fast_speed, mid_speed, slow_speed):
-        print("speeds", fast_speed, mid_speed, slow_speed)
         if self.go_fast:
             if not self.go_slow:
                 return fast_speed
@@ -494,6 +493,8 @@ def handle_updateVectorHud():
         print(face.name)
         print("Face id:")
         print(face.face_id)
+    
+
 
     battery_state = flask_app.remote_control_vector.vector.get_battery_state().result()
     if battery_state:
@@ -501,6 +502,11 @@ def handle_updateVectorHud():
         battery_charging = battery_state.is_charging
     return jsonify({'leftWheel': flask_app.remote_control_vector.vector.left_wheel_speed_mmps, 'rightWheel': flask_app.remote_control_vector.vector.right_wheel_speed_mmps, 'batteryLevel': battery_level, 'batteryCharging':battery_charging, 'headAngleRad': flask_app.remote_control_vector.vector.head_angle_rad, 'liftHeightmm': flask_app.remote_control_vector.vector.lift_height_mm})
 
+@flask_app.route('/updateVectorStats', methods=['GET'])
+def handle_updateVectorStats():
+    print('Updating Vectors Stats, Sending Data...')
+
+    return jsonify({'are_motors_moving':flask_app.remote_control_vector.vector.status.are_motors_moving, 'are_wheels_moving':flask_app.remote_control_vector.vector.status.are_wheels_moving, 'is_animating':flask_app.remote_control_vector.vector.status.is_animating, 'is_being_held':flask_app.remote_control_vector.vector.status.is_being_held, 'is_button_pressed':flask_app.remote_control_vector.vector.status.is_button_pressed, 'is_carrying_block':flask_app.remote_control_vector.vector.status.is_carrying_block, 'is_charging':flask_app.remote_control_vector.vector.status.is_charging, 'is_cliff_detected':flask_app.remote_control_vector.vector.status.is_cliff_detected, 'is_docking_to_marker':flask_app.remote_control_vector.vector.status.is_docking_to_marker, 'is_falling':flask_app.remote_control_vector.vector.status.is_falling, 'is_head_in_pos':flask_app.remote_control_vector.vector.status.is_head_in_pos, 'is_in_calm_power_mode':flask_app.remote_control_vector.vector.status.is_in_calm_power_mode, 'is_lift_in_pos':flask_app.remote_control_vector.vector.status.is_lift_in_pos, 'is_on_charger':flask_app.remote_control_vector.vector.status.is_on_charger, 'is_pathing':flask_app.remote_control_vector.vector.status.is_pathing, 'is_picked_up':flask_app.remote_control_vector.vector.status.is_picked_up, 'is_robot_moving':flask_app.remote_control_vector.vector.status.is_robot_moving })
 
 def run():
     args = util.parse_command_args()

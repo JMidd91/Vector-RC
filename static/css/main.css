@@ -1,0 +1,85 @@
+body {
+    margin: 0;
+    padding: 0;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    color: #444;
+}
+
+#mainScreen {
+    width: 100%; 
+    height: 100%;
+}
+
+#vectorImageId {
+    position: absolute; 
+    width: 100%; 
+    height: 100%; 
+    z-index: 0;
+}
+
+#vectorHud {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+}
+
+#robotStatusContainer {
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+#robotStatus {
+    position: relative;
+    color: white;
+    z-index: 2;
+    background-color: rgba(28, 28, 28, 0.2);
+    padding: 20;
+}
+
+#statsToggleButton {
+    position: relative;
+    bottom: 110%;
+    left: 0;
+    color: white;
+    z-index: 2;
+    background-color: rgba(28, 28, 28, 0.2);
+    padding: 20;
+    padding-top: 0;
+    border-bottom-right-radius: 15px;
+}
+
+#statsToggleButton a {
+    display: inline-block;
+    width: 60px;
+    height: 25px;
+    line-height: 25px;
+    text-align: center;
+    font-size: 12;
+    color: rgb(191, 189, 145);
+    background: rgb(28, 28, 28);;
+    text-decoration: none !important;
+}
+
+#statsToggleButton a i {
+    color: rgb(38, 201, 142);
+}
+
+#robotStatus ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    line-height: 1.3;
+    font-size: 12;
+}
+
+#robotStatus ul .key {
+    color: rgb(191, 189, 145);
+    font-weight: bold;
+}
+
+#robotStatus ul .value {
+    color: rgb(38, 201, 142);
+    font-weight: bolder;
+}

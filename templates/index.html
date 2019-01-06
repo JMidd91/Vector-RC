@@ -1,15 +1,27 @@
 <html>
         <head>
-            <title>remote_control_vector.py display</title>
-            <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+            <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+            <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+            <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/main.css') }}">
+            
+            <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+            <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
             <script src="https://code.createjs.com/1.0.0/createjs.min.js"></script>
+            
         </head>
         <body style="margin: 0;">
-            <div id="mainScreen" style="width: 100%; height: 100%;">
-                <h1 id="speeds" style="display:none;">Left: 0 Right: 0</h1>
+            <div id="mainScreen">
+                <div id="robotStatusContainer">
+                    <div id="robotStatus" class="open">
+                        <ul></ul>
+                    </div> 
+                    <div id="statsToggleButton">
+                        <a>Stats <i class="fa fa-chevron-up"></i></a>
+                    </div>
+                </div>               
                 <div id="vectorImageMicrosoftWarning" style="display: none;color: #ff9900; text-align: center;">Video feed performance is better in Chrome or Firefox due to mjpeg limitations in this browser</div>
-                <canvas id="vectorHud" style="position: absolute; width: 100%; height: 100%; z-index: 1;"></canvas>
-                <img src="vectorImage" id="vectorImageId" style="position: absolute; width: 100%; height: 100%; z-index: 0;">
+                <canvas id="vectorHud"></canvas>
+                <img src="vectorImage" id="vectorImageId">
                 <div id="DebugInfoId" style="display:none;"></div>
             </div>
             <div id="controls" style="display: none;">
@@ -45,7 +57,31 @@
                 """ + get_anim_sel_drop_downs() + """<br>
             </div>
 
+
+
             <script type="text/javascript">
+
+                //setup drop down stats panel
+
+                $(document).ready(function(){
+                    $("#statsToggleButton").on('click',function(e){
+                        e.preventDefault();
+                        
+                        //Check this block is open or not..
+                        if(!$(this).prev().hasClass("open")) {
+                            $("#robotStatus").slideDown(400);
+                            $("#robotStatus").addClass("open");
+                            $(this).find("i").removeClass().addClass("fa fa-chevron-up");
+                        }                        
+                        else if($(this).prev().hasClass("open")) {
+                            $("#robotStatus").removeClass("open");
+                            $("#robotStatus").slideUp(400);
+                            $(this).find("i").removeClass().addClass("fa fa-chevron-down");
+                        }
+                    });
+                });
+
+                //setup create js stuff
 
                 var manifest = [
                     {src: "static/images/1x/speedo.png", name: "speedo", data: null},
@@ -323,23 +359,45 @@
                     stopEventPropagation(event);
                 } );
 
+                setInterval(updateRobotStats, 60);
+                function updateRobotStats(){
+                    $.get( 'http://127.0.0.1:5000/updateVectorStats', function( data ) {
+                        //console.log("STATS got this data", data);
+
+                        let dataKeys = Object.keys(data);
+
+                        dataKeys.forEach(function(key) {
+                            //console.log("for key", key, $("#robotStatus ul #" + key).length);
+
+                            if($("#robotStatus ul #" + key).length === 0){
+                                //add to list
+                                $("#robotStatus ul").append('<li id=' + key + '><span class="key">' + key + ' - </span><span class="value">' + data[key] + '</li>');
+                            }else{
+                                //already exists, so update stat item
+                                $("#robotStatus ul #" + key + " .value").text(data[key]);
+                            }
+                        })
+
+                    });
+                }
+
                 setInterval(updateHud , 60);
                 function updateHud(){
                     //get data needed for hud from python
                     $.get( 'http://127.0.0.1:5000/updateVectorHud', function( data ) {
-                            console.log( "got this data", data );
+                        //console.log( "HUD got this data", data );
 
-                            $('#speeds').text('Left: '+normaliseNeedle(data.leftWheel)+' Right: '+normaliseNeedle(data.rightWheel))
+                        $('#speeds').text('Left: '+normaliseNeedle(data.leftWheel)+' Right: '+normaliseNeedle(data.rightWheel))
 
-                            leftNeedle.rotation = normaliseNeedle(data.leftWheel);
-                            rightNeedle.rotation = normaliseNeedle(data.rightWheel);
+                        leftNeedle.rotation = normaliseNeedle(data.leftWheel);
+                        rightNeedle.rotation = normaliseNeedle(data.rightWheel);
 
-                            setBatteryStatus(data.batteryLevel, data.batteryCharging);
+                        setBatteryStatus(data.batteryLevel, data.batteryCharging);
 
-                            headAngle.rotation = radToDeg(data.headAngleRad);
+                        headAngle.rotation = radToDeg(data.headAngleRad);
 
-                            liftHeight.y = -(data.liftHeightmm*1.3) + headAngle.y + 75;                           
-                        });
+                        liftHeight.y = -(data.liftHeightmm*1.3) + headAngle.y + 75;                           
+                    });
                 }
 
                 function normaliseNeedle(needle){
