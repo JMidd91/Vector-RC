@@ -27,8 +27,6 @@ https://github.com/JMidd91/Vector-RC/blob/master/_screenshots/2.png.
     - add expression tag next to detected face
     
     
-    
-    
   <h2><b>audio</b> -</h2> on hold due to SDK bug. - https://forums.anki.com/t/audio-processing-and-events-in-the-sdk/24484/15
   
     - add output from Vectors mic to pc
@@ -43,4 +41,26 @@ https://github.com/JMidd91/Vector-RC/blob/master/_screenshots/2.png.
   <h2><b>speedometer</b></h2>
     
     - make it prettier - black and white looks ugly.
+    
     - not sure aeronautical colouring of needles is clear enough. needs better ux 
+    
+    
+  <h2><b>Other</b></h2>
+    
+    - think of way to display other items such as:
+      
+      - gyro info
+      
+      - nav map ( possible minimap? )
+      
+      - proximity
+      
+      - photos
+      
+      - network info
+      
+    - create a menu
+    
+      - add buttons to toggle HUD elements 
+      
+      - add key map
