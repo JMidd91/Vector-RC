@@ -431,7 +431,11 @@ def handle_setFreeplayEnabled():
     if flask_app.remote_control_vector:
         isFreeplayEnabled = message['isFreeplayEnabled']
         connection = flask_app.remote_control_vector.vector.conn
-        connection.request_control(enable=(not isFreeplayEnabled))
+        if isFreeplayEnabled == True:
+            connection.release_control()
+        elif isFreeplayEnabled == False:
+            connection.request_control()
+        
     return ""
 
 
