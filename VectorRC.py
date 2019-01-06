@@ -59,6 +59,7 @@ def create_default_image(image_width, image_height, do_gradient=False):
 flask_app = Flask(__name__, static_url_path='/static', template_folder='templates')
 _default_camera_image = create_default_image(320, 240)
 _is_mouse_look_enabled_by_default = False
+_is_torch_mode_enabled_by_default = False
 
 
 def remap_to_range(x, x_min, x_max, out_min, out_max):
@@ -90,11 +91,13 @@ class RemoteControlVector:
         self.lift_down = 0
         self.head_up = 0
         self.head_down = 0
+        self.torchIsEnabled = _is_torch_mode_enabled_by_default
 
         self.go_fast = 0
         self.go_slow = 0
 
         self.is_mouse_look_enabled = _is_mouse_look_enabled_by_default
+        self.torchIsEnabled = _is_torch_mode_enabled_by_default
         self.mouse_dir = 0
 
         all_anim_names = self.vector.anim.anim_list
@@ -424,6 +427,27 @@ def handle_setMouseLookEnabled():
     return ""
 
 
+@flask_app.route('/setTorchModeEnabled', methods=['POST'])
+def handle_setTorchModeEnabled():
+    """Called from Javascript whenever torch mode is toggled"""
+    message = json.loads(request.data.decode("utf-8"))    
+    flask_app.remote_control_vector.torchIsEnabled = message['isTorchModeEnabled']
+    #print("message is ", message)
+    setTorchMode()
+    return ""   
+
+def setTorchMode():
+    #print("Torch is Enabled? ", flask_app.remote_control_vector.torchIsEnabled)
+    if flask_app.remote_control_vector:
+        if flask_app.remote_control_vector.torchIsEnabled:
+            flask_app.remote_control_vector.vector.behavior.set_eye_color(hue=0.00, saturation=0.00)
+            flask_app.remote_control_vector.vector.screen.set_screen_to_color(anki_vector.color.Color(rgb=[255, 255, 255]), duration_sec=1.0, interrupt_running=True)
+            time.sleep(1)
+            setTorchMode()
+        else:            
+            flask_app.remote_control_vector.vector.behavior.set_eye_color(hue=0.00, saturation=1.00)
+            flask_app.remote_control_vector.vector.screen.set_screen_to_color(anki_vector.color.Color(rgb=[0, 0, 0]), duration_sec=0.01, interrupt_running=True)
+
 @flask_app.route('/setFreeplayEnabled', methods=['POST'])
 def handle_setFreeplayEnabled():
     """Called from Javascript whenever freeplay mode is toggled on/off"""
@@ -435,6 +459,7 @@ def handle_setFreeplayEnabled():
             connection.release_control()
         elif isFreeplayEnabled == False:
             connection.request_control()
+            flask_app.remote_control_vector.vector.behavior.set_eye_color(hue=0.00, saturation=1.00)
         
     return ""
 
@@ -490,7 +515,7 @@ def handle_updateVector():
 
 @flask_app.route('/updateVectorHud', methods=['GET'])
 def handle_updateVectorHud():
-    print('Updating Vectors HUD, Sending Data...')
+    #print('Updating Vectors HUD, Sending Data...')
     
     for face in flask_app.remote_control_vector.vector.world.visible_faces:
         print("Face name:")
@@ -508,7 +533,7 @@ def handle_updateVectorHud():
 
 @flask_app.route('/updateVectorStats', methods=['GET'])
 def handle_updateVectorStats():
-    print('Updating Vectors Stats, Sending Data...')
+    #print('Updating Vectors Stats, Sending Data...')
 
     return jsonify({'are_motors_moving':flask_app.remote_control_vector.vector.status.are_motors_moving, 'are_wheels_moving':flask_app.remote_control_vector.vector.status.are_wheels_moving, 'is_animating':flask_app.remote_control_vector.vector.status.is_animating, 'is_being_held':flask_app.remote_control_vector.vector.status.is_being_held, 'is_button_pressed':flask_app.remote_control_vector.vector.status.is_button_pressed, 'is_carrying_block':flask_app.remote_control_vector.vector.status.is_carrying_block, 'is_charging':flask_app.remote_control_vector.vector.status.is_charging, 'is_cliff_detected':flask_app.remote_control_vector.vector.status.is_cliff_detected, 'is_docking_to_marker':flask_app.remote_control_vector.vector.status.is_docking_to_marker, 'is_falling':flask_app.remote_control_vector.vector.status.is_falling, 'is_head_in_pos':flask_app.remote_control_vector.vector.status.is_head_in_pos, 'is_in_calm_power_mode':flask_app.remote_control_vector.vector.status.is_in_calm_power_mode, 'is_lift_in_pos':flask_app.remote_control_vector.vector.status.is_lift_in_pos, 'is_on_charger':flask_app.remote_control_vector.vector.status.is_on_charger, 'is_pathing':flask_app.remote_control_vector.vector.status.is_pathing, 'is_picked_up':flask_app.remote_control_vector.vector.status.is_picked_up, 'is_robot_moving':flask_app.remote_control_vector.vector.status.is_robot_moving })
 
@@ -516,6 +541,8 @@ def run():
     args = util.parse_command_args()
     #when audio is read, add this below - ", enable_audio_feed=True"
     with anki_vector.AsyncRobot(args.serial, enable_camera_feed=True, enable_face_detection=True) as robot:
+        #robot.vision.enable_display_camera_feed_on_face()
+        robot.vision.enable_face_detection(detect_faces=True, estimate_expression=True)
         flask_app.remote_control_vector = RemoteControlVector(robot)
 
         #robot.behavior.drive_off_charger()

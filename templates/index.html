@@ -33,6 +33,7 @@
             
                             <b>W A S D</b> : Drive Forwards / Left / Back / Right<br><br>
                             <b>Q</b> : Toggle Mouse Look: <button id="mouseLookId" onClick=onMouseLookButtonClicked(this) style="font-size: 14px">Disabled</button><br>
+                            <b>E</b> : Toggle Torch Mode: <button id="torchModeId" onClick=onTorchModeButtonClicked(this) style="font-size: 14px">Disabled</button><br>
                             <b>Mouse</b> : Move in browser window to aim<br>
                             (steer and head angle)<br>
                             (similar to an FPS game)<br>
@@ -236,6 +237,7 @@
                 var gLastClientX = -1
                 var gLastClientY = -1
                 var gIsMouseLookEnabled = " + to_js_bool_string(_is_mouse_look_enabled_by_default) + "
+                var gIsTorchModeEnabled = false
                 var gIsFreeplayEnabled = false
                 var gUserAgent = window.navigator.userAgent;
                 var gIsMicrosoftBrowser = gUserAgent.indexOf('MSIE ') > 0 || gUserAgent.indexOf('Trident/') > 0 || gUserAgent.indexOf('Edge/') > 0;
@@ -288,6 +290,15 @@
                     postHttpRequest("setMouseLookEnabled", {isMouseLookEnabled})
                 }
 
+                function onTorchModeButtonClicked(button)
+                {
+                    gIsTorchModeEnabled = !gIsTorchModeEnabled;
+                    updateButtonEnabledText(button, gIsTorchModeEnabled);
+                    isTorchModeEnabled = gIsTorchModeEnabled
+                    console.log("SEND TORCH MODE REQUEST")
+                    postHttpRequest("setTorchModeEnabled", {isTorchModeEnabled})
+                }
+
                 function onFreeplayButtonClicked(button)
                 {
                     gIsFreeplayEnabled = !gIsFreeplayEnabled;
@@ -324,6 +335,11 @@
                         {
                             // Simulate a click of the mouse look button
                             onMouseLookButtonClicked(document.getElementById("mouseLookId"))
+                        }
+                        else if (keyCode == 69) // 'E'
+                        {
+                            // Simulate a click of the mouse look button
+                            onTorchModeButtonClicked(document.getElementById("torchModeId"))
                         }
                     }
 
