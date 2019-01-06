@@ -1,0 +1,383 @@
+<html>
+        <head>
+            <title>remote_control_vector.py display</title>
+            <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+            <script src="https://code.createjs.com/1.0.0/createjs.min.js"></script>
+        </head>
+        <body style="margin: 0;">
+            <div id="mainScreen" style="width: 100%; height: 100%;">
+                <h1 id="speeds" style="display:none;">Left: 0 Right: 0</h1>
+                <div id="vectorImageMicrosoftWarning" style="display: none;color: #ff9900; text-align: center;">Video feed performance is better in Chrome or Firefox due to mjpeg limitations in this browser</div>
+                <canvas id="vectorHud" style="position: absolute; width: 100%; height: 100%; z-index: 1;"></canvas>
+                <img src="vectorImage" id="vectorImageId" style="position: absolute; width: 100%; height: 100%; z-index: 0;">
+                <div id="DebugInfoId" style="display:none;"></div>
+            </div>
+            <div id="controls" style="display: none;">
+                <h3>Talk</h3>
+                <b>Space</b> : Say <input type="text" name="sayText" id="sayTextId" value="""" + flask_app.remote_control_vector.text_to_say + """" onchange=handleTextInput(this)>
+                <h2>Controls:</h2>
+
+                <h3>Driving:</h3>
+
+                <b>W A S D</b> : Drive Forwards / Left / Back / Right<br><br>
+                <b>Q</b> : Toggle Mouse Look: <button id="mouseLookId" onClick=onMouseLookButtonClicked(this) style="font-size: 14px">Default</button><br>
+                <b>Mouse</b> : Move in browser window to aim<br>
+                (steer and head angle)<br>
+                (similar to an FPS game)<br>
+
+                <h3>Head:</h3>
+                <b>T</b> : Move Head Up<br>
+                <b>G</b> : Move Head Down<br>
+
+                <h3>Lift:</h3>
+                <b>R</b> : Move Lift Up<br>
+                <b>F</b>: Move Lift Down<br>
+                <h3>General:</h3>
+                <b>Shift</b> : Hold to Move Faster (Driving, Head and Lift)<br>
+                <b>Alt</b> : Hold to Move Slower (Driving, Head and Lift)<br>
+                <b>P</b> : Toggle Free Play mode: <button id="freeplayId" onClick=onFreeplayButtonClicked(this) style="font-size: 14px">Default</button><br>
+                <b>H</b> : Make Vector Dock With His Charger<br>
+                <h3>Play Animations</h3>
+                <b>0 .. 9</b> : Play Animation mapped to that key<br>
+            </div>
+            <div id="animationMappings" style="display: none;">
+                <h2>Animation key mappings:</h2>
+                """ + get_anim_sel_drop_downs() + """<br>
+            </div>
+
+            <script type="text/javascript">
+
+                var manifest = [
+                    {src: "static/images/1x/speedo.png", name: "speedo", data: null},
+                    {src: "static/images/1x/needle1.png", name: "rightNeedle", data: null},
+                    {src: "static/images/1x/needle2.png", name: "leftNeedle", data: null},
+                    {src: "static/images/1x/charge1.png", name: "charge1", data: null},
+                    {src: "static/images/1x/charge2.png", name: "charge2", data: null},
+                    {src: "static/images/1x/charge3.png", name: "charge3", data: null},
+                    {src: "static/images/1x/charging.png", name: "charging", data: null},
+                    {src: "static/images/1x/headAngle.png", name: "headAngle", data: null},
+                    {src: "static/images/1x/liftHeight.png", name: "liftHeight", data: null},
+                ]
+
+                var imageIndex = 0;
+
+                function loadImages(i){
+                    if(i < manifest.length){
+                        var img = new Image();
+                        img.onload = function(){
+                            imageIndex++;
+                            loadImages(imageIndex);
+                        }
+                        img.src = manifest[i].src;
+                        manifest[i].data = img;
+                    }else{
+                        init()
+                    }
+                }
+
+                loadImages(imageIndex);
+
+                function init() {
+                    console.log("MANI", manifest)
+                    canvas = document.getElementById("vectorHud");
+                    canvas.width = $('#vectorHud').outerWidth();
+                    canvas.height = $('#vectorHud').outerHeight();
+                    stage = new createjs.Stage(canvas);
+                    addImagesToStage(updateHud);
+                    createjs.Ticker.addEventListener("tick", handleTick);
+                }
+
+                function addImagesToStage(callback) {
+                    for(let c = 0; c < manifest.length; c++){
+                        var img = new createjs.Bitmap(manifest[c].data);
+                        switch(manifest[c].name){
+                            case "speedo":
+                                img.regX = img.image.width / 2;
+                                img.regY = img.image.height / 2;
+                                img.x = canvas.width - img.image.width / 2;
+                                img.y = canvas.height - img.image.height / 2;
+                                break;
+
+                            case "rightNeedle":
+                            case "leftNeedle":
+                                img.regX = img.image.width;
+                                img.regY = img.image.height / 2;
+                                img.x = canvas.width;
+                                img.y = canvas.height;
+                                break; 
+
+                            case "charge1":
+                            case "charge2":
+                                img.visible = false;
+                            case "charge3":
+                                img.regX = img.image.width / 2;
+                                img.regY = img.image.height / 2;
+                                img.x = (canvas.width - (img.image.width / 2)) - 30;
+                                img.y = (img.image.height / 2) + 30;
+                                break;
+
+                            case "charging":
+                                img.regX = img.image.width / 2;
+                                img.regY = img.image.height / 2;
+                                img.x = charge3.x;
+                                img.y = charge3.y + 4;
+                                img.visible = false;
+                                break;
+
+                            case "headAngle":
+                                img.regX = img.image.width / 2;
+                                img.regY = img.image.height / 2;
+                                img.x = (canvas.width - (img.image.width / 2)) - 30;
+                                img.y = charge3.y + charge3.image.height/2 + img.image.height/2 + 30;
+                                break;
+
+                            case "liftHeight":                            
+                                img.regX = img.image.width / 2;
+                                img.regY = img.image.height / 2;
+                                img.x = headAngle.x - headAngle.image.width;
+                                img.y = headAngle.y;
+                                break;
+
+                            default:
+                                img.regX = img.image.width / 2;
+                                img.regY = img.image.height / 2;
+                                img.x = canvas.width / 2;
+                                img.y = canvas.height / 2;
+                                break;
+                        }
+                        img.name = manifest[c].name;
+                        window[img.name] = img;
+                        console.log("added", img.name, "to window", window[img.name]);
+                        stage.addChild(img);
+                        stage.update();
+                    }
+                    callback();
+                }
+
+                function handleTick(event){
+                    if (!event.paused){
+
+                        stage.update();
+                    }
+                }
+
+
+
+                //force fullscreen
+                addEventListener("click", function() {
+                    var
+                        el = document.documentElement
+                        , rfs =
+                            el.requestFullScreen
+                            || el.webkitRequestFullScreen
+                            || el.mozRequestFullScreen
+                    ;
+                    rfs.call(el);
+                });
+                
+                var gLastClientX = -1
+                var gLastClientY = -1
+                var gIsMouseLookEnabled = " + to_js_bool_string(_is_mouse_look_enabled_by_default) + "
+                var gIsFreeplayEnabled = false
+                var gUserAgent = window.navigator.userAgent;
+                var gIsMicrosoftBrowser = gUserAgent.indexOf('MSIE ') > 0 || gUserAgent.indexOf('Trident/') > 0 || gUserAgent.indexOf('Edge/') > 0;
+                var gSkipFrame = false;
+
+                if (gIsMicrosoftBrowser) {
+                    document.getElementById("vectorImageMicrosoftWarning").style.display = "block";
+                }
+
+                function postHttpRequest(url, dataSet)
+                {
+                    var xhr = new XMLHttpRequest();
+                    xhr.open("POST", url, true);
+                    xhr.send( JSON.stringify( dataSet ) );
+                }
+
+                function updateVector()
+                {
+                    //console.log("Updating log")
+                    if (gIsMicrosoftBrowser && !gSkipFrame) {
+                        // IE doesn't support MJPEG, so we need to ping the server for more images.
+                        // Though, if this happens too frequently, the controls will be unresponsive.
+                        gSkipFrame = true;
+                        document.getElementById("vectorImageId").src="vectorImage?" + (new Date()).getTime();
+                    } else if (gSkipFrame) {
+                        gSkipFrame = false;
+                    }
+                    var xhr = new XMLHttpRequest();
+                    xhr.onreadystatechange = function() {
+                        if (xhr.readyState == XMLHttpRequest.DONE) {
+                            document.getElementById("DebugInfoId").innerHTML = xhr.responseText
+                        }
+                    }
+
+                    xhr.open("POST", "updateVector", true);
+                    xhr.send( null );
+                }
+                setInterval(updateVector , 60);
+
+                function updateButtonEnabledText(button, isEnabled)
+                {
+                    button.firstChild.data = isEnabled ? "Enabled" : "Disabled";
+                }
+
+                function onMouseLookButtonClicked(button)
+                {
+                    gIsMouseLookEnabled = !gIsMouseLookEnabled;
+                    updateButtonEnabledText(button, gIsMouseLookEnabled);
+                    isMouseLookEnabled = gIsMouseLookEnabled
+                    postHttpRequest("setMouseLookEnabled", {isMouseLookEnabled})
+                }
+
+                function onFreeplayButtonClicked(button)
+                {
+                    gIsFreeplayEnabled = !gIsFreeplayEnabled;
+                    updateButtonEnabledText(button, gIsFreeplayEnabled);
+                    isFreeplayEnabled = gIsFreeplayEnabled
+                    postHttpRequest("setFreeplayEnabled", {isFreeplayEnabled})
+                }
+
+                updateButtonEnabledText(document.getElementById("mouseLookId"), gIsMouseLookEnabled);
+                updateButtonEnabledText(document.getElementById("freeplayId"), gIsFreeplayEnabled);
+
+                function handleDropDownSelect(selectObject)
+                {
+                    selectedIndex = selectObject.selectedIndex
+                    itemName = selectObject.name
+                    postHttpRequest("dropDownSelect", {selectedIndex, itemName});
+                }
+
+                function handleKeyActivity (e, actionType)
+                {
+                    var keyCode  = (e.keyCode ? e.keyCode : e.which);
+                    var hasShift = (e.shiftKey ? 1 : 0)
+                    var hasCtrl  = (e.ctrlKey  ? 1 : 0)
+                    var hasAlt   = (e.altKey   ? 1 : 0)
+
+                    if (actionType=="keyup")
+                    {
+                        if (keyCode == 80) // 'P'
+                        {
+                            // Simulate a click of the freeplay button
+                            onFreeplayButtonClicked(document.getElementById("freeplayId"))
+                        }
+                        else if (keyCode == 81) // 'Q'
+                        {
+                            // Simulate a click of the mouse look button
+                            onMouseLookButtonClicked(document.getElementById("mouseLookId"))
+                        }
+                    }
+
+                    postHttpRequest(actionType, {keyCode, hasShift, hasCtrl, hasAlt})
+                }
+
+                function handleMouseActivity (e, actionType)
+                {
+                    var clientX = e.clientX / document.body.clientWidth  // 0..1 (left..right)
+                    var clientY = e.clientY / document.body.clientHeight // 0..1 (top..bottom)
+                    var isButtonDown = e.which && (e.which != 0) ? 1 : 0
+                    var deltaX = (gLastClientX >= 0) ? (clientX - gLastClientX) : 0.0
+                    var deltaY = (gLastClientY >= 0) ? (clientY - gLastClientY) : 0.0
+                    gLastClientX = clientX
+                    gLastClientY = clientY
+
+                    postHttpRequest(actionType, {clientX, clientY, isButtonDown, deltaX, deltaY})
+                }
+
+                function handleTextInput(textField)
+                {
+                    textEntered = textField.value
+                    postHttpRequest("sayText", {textEntered})
+                }
+
+                document.addEventListener("keydown", function(e) { 
+                    //e.stopPropagation()
+                    e.preventDefault()
+                    handleKeyActivity(e, "keydown") 
+                } );
+                document.addEventListener("keyup",   function(e) { 
+                    //e.stopPropagation()
+                    e.preventDefault()
+                    handleKeyActivity(e, "keyup") 
+                } );
+
+                document.addEventListener("mousemove",   function(e) { handleMouseActivity(e, "mousemove") } );
+
+                function stopEventPropagation(event)
+                {
+                    if (event.stopPropagation)
+                    {
+                        event.stopPropagation();
+                    }
+                    else
+                    {
+                        event.cancelBubble = true
+                    }
+                }
+
+                document.getElementById("sayTextId").addEventListener("keydown", function(event) {
+                    stopEventPropagation(event);
+                } );
+                document.getElementById("sayTextId").addEventListener("keyup", function(event) {
+                    stopEventPropagation(event);
+                } );
+
+                setInterval(updateHud , 60);
+                function updateHud(){
+                    //get data needed for hud from python
+                    $.get( 'http://127.0.0.1:5000/updateVectorHud', function( data ) {
+                            console.log( "got this data", data );
+
+                            $('#speeds').text('Left: '+normaliseNeedle(data.leftWheel)+' Right: '+normaliseNeedle(data.rightWheel))
+
+                            leftNeedle.rotation = normaliseNeedle(data.leftWheel);
+                            rightNeedle.rotation = normaliseNeedle(data.rightWheel);
+
+                            setBatteryStatus(data.batteryLevel, data.batteryCharging);
+
+                            headAngle.rotation = radToDeg(data.headAngleRad);
+
+                            liftHeight.y = -(data.liftHeightmm*1.3) + headAngle.y + 75;                           
+                        });
+                }
+
+                function normaliseNeedle(needle){
+                    return normaliseVar(needle, 250, -250) * 90;
+                }
+
+                function normaliseVar(val, max, min){
+                    return (val - min) / (max - min);
+                }
+
+                function radToDeg(val){
+                    return val/Math.PI*180
+                }
+            
+                function setBatteryStatus(level, isCharging){                    
+                    switch(level){
+                                case 1:
+                                    charge1.visible = true;
+                                    charge2.visible = false;
+                                    charge3.visible = false;
+                                    break;
+                                
+                                case 2:
+                                    charge1.visible = false;
+                                    charge2.visible = true;
+                                    charge3.visible = false;
+                                    break;
+
+                                case 3:
+                                    charge1.visible = false;
+                                    charge2.visible = false;
+                                    charge3.visible = true;
+                                    break;
+                            }
+
+                            charging.visible = isCharging;
+                }
+            </script>
+
+        </body>
+    </html>
