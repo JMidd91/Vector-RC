@@ -12,50 +12,57 @@
         <body style="margin: 0;">
             <div id="mainScreen">
                 <div id="robotStatusContainer">
-                    <div id="robotStatus" class="open">
+                    <div id="robotStatus" style="display:none;">
                         <ul></ul>
-                    </div> 
-                    <div id="statsToggleButton">
-                        <a>Stats <i class="fa fa-chevron-up"></i></a>
                     </div>
-                </div>               
+                    <div id="statsToggleButton" class="slideButton">
+                        <a>Stats <i class="fa fa-chevron-down"></i></a>
+                    </div>
+                </div>
+                <div id="controlContainer">
+                    <div id="controlsToggleButton" class="slideButton">
+                        <a>Controls <i class="fa fa-chevron-up"></i></a>
+                    </div>
+                    <div id="controlScheme" style="display:none;">
+                        <div id="controls">
+                            <h3>Talk</h3>
+                            <b>Space</b> : Say <input type="text" name="sayText" id="sayTextId" value="""" + flask_app.remote_control_vector.text_to_say + """" onchange=handleTextInput(this)>
+                            <h2>Controls:</h2>
+            
+                            <h3>Driving:</h3>
+            
+                            <b>W A S D</b> : Drive Forwards / Left / Back / Right<br><br>
+                            <b>Q</b> : Toggle Mouse Look: <button id="mouseLookId" onClick=onMouseLookButtonClicked(this) style="font-size: 14px">Disabled</button><br>
+                            <b>Mouse</b> : Move in browser window to aim<br>
+                            (steer and head angle)<br>
+                            (similar to an FPS game)<br>
+            
+                            <h3>Head:</h3>
+                            <b>T</b> : Move Head Up<br>
+                            <b>G</b> : Move Head Down<br>
+            
+                            <h3>Lift:</h3>
+                            <b>R</b> : Move Lift Up<br>
+                            <b>F</b>: Move Lift Down<br>
+                            <h3>General:</h3>
+                            <b>Shift</b> : Hold to Move Faster (Driving, Head and Lift)<br>
+                            <b>Alt</b> : Hold to Move Slower (Driving, Head and Lift)<br>
+                            <b>P</b> : Toggle Free Play mode: <button id="freeplayId" onClick=onFreeplayButtonClicked(this) style="font-size: 14px">Disabled</button><br>
+                            <b>H</b> : Make Vector Dock With His Charger<br>
+                            <h3>Play Animations</h3>
+                            <b>0 .. 9</b> : Play Animation mapped to that key<br>
+                        </div>
+                        <div id="animationMappings">
+                            <h2>Animation key mappings:</h2>
+                            '"' + get_anim_sel_drop_downs() + '"'<br>
+                        </div>
+                    </div>
+                </div>
                 <div id="vectorImageMicrosoftWarning" style="display: none;color: #ff9900; text-align: center;">Video feed performance is better in Chrome or Firefox due to mjpeg limitations in this browser</div>
                 <canvas id="vectorHud"></canvas>
                 <img src="vectorImage" id="vectorImageId">
                 <div id="DebugInfoId" style="display:none;"></div>
-            </div>
-            <div id="controls" style="display: none;">
-                <h3>Talk</h3>
-                <b>Space</b> : Say <input type="text" name="sayText" id="sayTextId" value="""" + flask_app.remote_control_vector.text_to_say + """" onchange=handleTextInput(this)>
-                <h2>Controls:</h2>
-
-                <h3>Driving:</h3>
-
-                <b>W A S D</b> : Drive Forwards / Left / Back / Right<br><br>
-                <b>Q</b> : Toggle Mouse Look: <button id="mouseLookId" onClick=onMouseLookButtonClicked(this) style="font-size: 14px">Default</button><br>
-                <b>Mouse</b> : Move in browser window to aim<br>
-                (steer and head angle)<br>
-                (similar to an FPS game)<br>
-
-                <h3>Head:</h3>
-                <b>T</b> : Move Head Up<br>
-                <b>G</b> : Move Head Down<br>
-
-                <h3>Lift:</h3>
-                <b>R</b> : Move Lift Up<br>
-                <b>F</b>: Move Lift Down<br>
-                <h3>General:</h3>
-                <b>Shift</b> : Hold to Move Faster (Driving, Head and Lift)<br>
-                <b>Alt</b> : Hold to Move Slower (Driving, Head and Lift)<br>
-                <b>P</b> : Toggle Free Play mode: <button id="freeplayId" onClick=onFreeplayButtonClicked(this) style="font-size: 14px">Default</button><br>
-                <b>H</b> : Make Vector Dock With His Charger<br>
-                <h3>Play Animations</h3>
-                <b>0 .. 9</b> : Play Animation mapped to that key<br>
-            </div>
-            <div id="animationMappings" style="display: none;">
-                <h2>Animation key mappings:</h2>
-                """ + get_anim_sel_drop_downs() + """<br>
-            </div>
+            </div>          
 
 
 
@@ -77,6 +84,21 @@
                             $("#robotStatus").removeClass("open");
                             $("#robotStatus").slideUp(400);
                             $(this).find("i").removeClass().addClass("fa fa-chevron-down");
+                        }
+                    });
+                    $("#controlsToggleButton").on('click',function(e){
+                        e.preventDefault();
+                        
+                        //Check this block is open or not..
+                        if(!$(this).next().hasClass("open")) {
+                            $("#controlScheme").slideDown(400);
+                            $("#controlScheme").addClass("open");
+                            $(this).find("i").removeClass().addClass("fa fa-chevron-down");
+                        }                        
+                        else if($(this).next().hasClass("open")) {
+                            $("#controlScheme").removeClass("open");
+                            $("#controlScheme").slideUp(400);
+                            $(this).find("i").removeClass().addClass("fa fa-chevron-up");
                         }
                     });
                 });

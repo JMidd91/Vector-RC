@@ -34,36 +34,45 @@ body {
     position: relative;
     color: white;
     z-index: 2;
-    background-color: rgba(28, 28, 28, 0.2);
+    background-color: rgba(28, 28, 28, 0.4);
     padding: 20;
+}
+
+.slideButton {
+    position: relative;
+    bottom: 110%;
+    left: 0;
+    color: white;
+    z-index: 2;
+    background-color: rgba(28, 28, 28, 0.4);
+    padding: 20;
+}
+
+.slideButton a {
+    display: inline-block;
+    height: 25px;
+    line-height: 25px;
+    text-align: center;
+    font-size: 12;
+    color: rgb(191, 189, 145);
+    background: rgb(28, 28, 28);
+    text-decoration: none !important;
+}
+
+.slideButton a i {
+    color: rgb(38, 201, 142);
 }
 
 #statsToggleButton {
     position: relative;
     bottom: 110%;
     left: 0;
-    color: white;
-    z-index: 2;
-    background-color: rgba(28, 28, 28, 0.2);
-    padding: 20;
-    padding-top: 0;
     border-bottom-right-radius: 15px;
+    padding-top: 0;
 }
 
 #statsToggleButton a {
-    display: inline-block;
     width: 60px;
-    height: 25px;
-    line-height: 25px;
-    text-align: center;
-    font-size: 12;
-    color: rgb(191, 189, 145);
-    background: rgb(28, 28, 28);;
-    text-decoration: none !important;
-}
-
-#statsToggleButton a i {
-    color: rgb(38, 201, 142);
 }
 
 #robotStatus ul {
@@ -82,4 +91,38 @@ body {
 #robotStatus ul .value {
     color: rgb(38, 201, 142);
     font-weight: bolder;
+}
+
+#controlContainer {
+    position: absolute;
+    bottom: 0;
+    margin: 0 auto;
+}
+
+#controlScheme {
+    position: relative;
+    color: white;
+    z-index: 2;
+    background-color: rgba(28, 28, 28, 0.4);
+    padding: 20;
+}
+
+#controlsToggleButton {
+    top: 110%;
+    left: 0;
+    border-top-right-radius: 15px;
+    padding-bottom: 0;
+}
+
+#controlsToggleButton a {
+    width: 75px;
+}
+
+#controls {
+    background-color: rgba(255, 255, 255, 0);
+}
+
+#controls button{
+    background-color: rgb(28, 28, 28);
+    border-color: rgb(191, 189, 145);
 }
