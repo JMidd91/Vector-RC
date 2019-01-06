@@ -14,3 +14,27 @@ screenshots -
 https://github.com/JMidd91/Vector-RC/blob/master/_screenshots/1.png.
 
 https://github.com/JMidd91/Vector-RC/blob/master/_screenshots/2.png.
+
+
+<h1><b>Todo</b> - </h1>
+
+  <h2><b>facial recognition</b> -</h2> on hold as there is bug in Vector SDK preventing progress. - https://forums.anki.com/t/face-id-is-wrong-in-sdk/28524/2
+  
+    - add squares around faces detected
+    
+    - add name tags next to known face when detected
+    
+    - add expression tag next to detected face
+    
+    
+    
+    
+  <h2><b>audio</b> -</h2> on hold due to SDK bug. - https://forums.anki.com/t/audio-processing-and-events-in-the-sdk/24484/15
+  
+    - add output from Vectors mic to pc
+    
+    - add markers to show direction of detected audio
+    
+    - possibly add function to allow user to speak into pc mic and then vector can repeat what is said.
+    
+    - see if its possible to add remote voice control for vector via pc mic
