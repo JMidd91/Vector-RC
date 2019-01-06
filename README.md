@@ -38,3 +38,9 @@ https://github.com/JMidd91/Vector-RC/blob/master/_screenshots/2.png.
     - possibly add function to allow user to speak into pc mic and then vector can repeat what is said.
     
     - see if its possible to add remote voice control for vector via pc mic
+    
+  
+  <h2><b>speedometer</b></h2>
+    
+    - make it prettier - black and white looks ugly.
+    - not sure aeronautical colouring of needles is clear enough. needs better ux 
