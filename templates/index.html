@@ -423,7 +423,7 @@
                 function updateHud(){
                     //get data needed for hud from python
                     $.get( 'http://127.0.0.1:5000/updateVectorHud', function( data ) {
-                        //console.log( "HUD got this data", data );
+                        console.log( "HUD got this data", data );
 
                         $('#speeds').text('Left: '+normaliseNeedle(data.leftWheel)+' Right: '+normaliseNeedle(data.rightWheel))
 
@@ -434,8 +434,53 @@
 
                         headAngle.rotation = radToDeg(data.headAngleRad);
 
-                        liftHeight.y = -(data.liftHeightmm*1.3) + headAngle.y + 75;                           
+                        liftHeight.y = -(data.liftHeightmm*1.3) + headAngle.y + 75;
+                        
+                        let dataKeys = Object.keys(data.faces);                         
+                        dataKeys.forEach(function(key) {
+                            drawFaceInfo(key, data.faces[key])
+                        });
                     });
+                }
+
+                let faces = {};                
+                function drawFaceInfo(faceID, face){
+                    //draw square
+                    let x = face.image_rect.x_top_left * ($(document).width() / 640 );
+                    let y = face.image_rect.y_top_left * ($(document).height() / 360);
+                    let w = face.image_rect.width * ($(document).width() / 640);
+                    let h = face.image_rect.height * ($(document).height() / 360);
+
+                    if(faces[faceID] && faces[faceID].faceRect && face.image_rect){
+                        faces[faceID].faceRect.graphics.command.w = w;
+                        faces[faceID].faceRect.graphics.command.h = h;
+                        faces[faceID].faceRect.graphics.command.x = x;
+                        faces[faceID].faceRect.graphics.command.y = y;
+                        faces[faceID].faceRect.visible = face.isVisible; // doesnt work. isVisible doesnt change from the SDK. is always True
+                    }else{
+                        faces[faceID] = {"faceRect": null};
+                        if(face.image_rect){
+                            let faceRect = new createjs.Shape();
+                            
+                            faceRect.graphics.beginStroke("#26C98E");
+                            faceRect.graphics.setStrokeStyle(4);
+                            faceRect.snapToPixel = true;
+                            faceRect.graphics.drawRect(x, y, w, h);
+                            stage.addChild(faceRect)
+
+                            faces[faceID].faceRect = faceRect;
+                        }
+                    }
+
+                    //only draw face once, then update position. 
+
+                    //need to detect when face no longer is onscreen then remove rect
+
+                    //draw line from face
+                    //add name at end of line
+
+                    //draw second line from face
+                    //add estimated expression at end of line
                 }
 
                 function normaliseNeedle(needle){

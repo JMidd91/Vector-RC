@@ -23,6 +23,7 @@ import io
 import json
 import sys
 import time
+import numpy
 from lib import flask_helpers
 
 import anki_vector
@@ -463,6 +464,15 @@ def handle_setFreeplayEnabled():
         
     return ""
 
+@flask_app.route('/setExploreEnabled', methods=['POST'])
+def handle_setExploreEnabled():
+    """Called from Javascript whenever explore mode is toggled on/off"""
+    message = json.loads(request.data.decode("utf-8"))
+    if flask_app.remote_control_vector:
+        isExploreEnabled = message['isExploreEnabled']
+        print(isExploreEnabled)
+
+    return ""
 
 @flask_app.route('/keydown', methods=['POST'])
 def handle_keydown():
@@ -512,24 +522,42 @@ def handle_updateVector():
 
         return "Action Queue:<br>" + action_queue_text + "\n"
     return ""
+    
 
+faces = {}
 @flask_app.route('/updateVectorHud', methods=['GET'])
 def handle_updateVectorHud():
     #print('Updating Vectors HUD, Sending Data...')
-    
     for face in flask_app.remote_control_vector.vector.world.visible_faces:
         print("Face name:")
         print(face.name)
         print("Face id:")
         print(face.face_id)
-    
+        print("MOUTH")
+        print(f"mouth: {face.mouth}")
+        print(f"Pose: {face.pose}")
+        dictKey = "face"+str(face.face_id)
+        print(f"dictKey is: {dictKey}")
+
+        faces[dictKey] = {
+            "name": face.name,
+            "isVisible": face.is_visible,
+            "id": face.face_id,
+            "updated id": face.updated_face_id,
+            "pose": { "position": { "x": face.pose.position.x, "y": face.pose.position.y, "z": face.pose.position.z}},
+            "expression": face.expression,
+            "expression_score": json.dumps(list(face.expression_score)),
+            "image_rect": { "height": face.last_observed_image_rect.height, "width": face.last_observed_image_rect.width, "x_top_left": face.last_observed_image_rect.x_top_left, "y_top_left": face.last_observed_image_rect.y_top_left}
+        }
+        
+    print(f"faces: {faces}")
 
 
     battery_state = flask_app.remote_control_vector.vector.get_battery_state().result()
     if battery_state:
         battery_level = battery_state.battery_level
         battery_charging = battery_state.is_charging
-    return jsonify({'leftWheel': flask_app.remote_control_vector.vector.left_wheel_speed_mmps, 'rightWheel': flask_app.remote_control_vector.vector.right_wheel_speed_mmps, 'batteryLevel': battery_level, 'batteryCharging':battery_charging, 'headAngleRad': flask_app.remote_control_vector.vector.head_angle_rad, 'liftHeightmm': flask_app.remote_control_vector.vector.lift_height_mm})
+    return jsonify({'leftWheel': flask_app.remote_control_vector.vector.left_wheel_speed_mmps, 'rightWheel': flask_app.remote_control_vector.vector.right_wheel_speed_mmps, 'batteryLevel': battery_level, 'batteryCharging':battery_charging, 'headAngleRad': flask_app.remote_control_vector.vector.head_angle_rad, 'liftHeightmm': flask_app.remote_control_vector.vector.lift_height_mm, 'faces': faces})
 
 @flask_app.route('/updateVectorStats', methods=['GET'])
 def handle_updateVectorStats():
@@ -540,8 +568,8 @@ def handle_updateVectorStats():
 def run():
     args = util.parse_command_args()
     #when audio is read, add this below - ", enable_audio_feed=True"
-    with anki_vector.AsyncRobot(args.serial, enable_camera_feed=True, enable_face_detection=True) as robot:
-        #robot.vision.enable_display_camera_feed_on_face()
+    with anki_vector.AsyncRobot(args.serial, enable_camera_feed=True) as robot:
+        robot.vision.enable_display_camera_feed_on_face()
         robot.vision.enable_face_detection(detect_faces=True, estimate_expression=True)
         flask_app.remote_control_vector = RemoteControlVector(robot)
 
